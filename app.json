@@ -9,12 +9,33 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "location",
+          "fetch"
+        ],
+        "NSLocationWhenInUseUsageDescription": "Precisamos da sua localização para rastrear suas entregas enquanto você usa o aplicativo.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Precisamos da sua localização para rastrear suas entregas, mesmo quando o aplicativo está em segundo plano."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "package": "com.rastreador.gps",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "WAKE_LOCK"
+      ],
+      "foregroundService": {
+        "name": "Rastreamento",
+        "description": "Permite rastrear sua localização durante as entregas"
       }
     },
     "web": {
@@ -32,10 +53,26 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Permitir que o aplicativo use sua localização."
+        }
+      ],
+      "expo-task-manager"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "socketUrl": "http://192.168.3.138:3000",
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "4fe82fad-d948-4454-ae16-236dd5c85f54"
+      }
     }
   }
 }
