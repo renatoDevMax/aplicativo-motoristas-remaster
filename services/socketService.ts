@@ -23,6 +23,11 @@ class SocketService {
     this.setupEventListeners();
   }
 
+  // Retorna a instância do socket
+  getSocket(): Socket | null {
+    return this.socket;
+  }
+
   // Configura listeners de eventos do socket
   private setupEventListeners() {
     if (!this.socket) return;

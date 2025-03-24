@@ -42,6 +42,11 @@ class EntregasService {
     return this.entregas;
   }
 
+  // Método para atualizar a lista de entregas
+  setEntregas(novasEntregas: entregasTipo[]): void {
+    this.entregas = novasEntregas;
+  }
+
   // Método para atualizar o status de uma entrega
   atualizarStatusEntrega(entregaId: string, novoStatus: string): void {
     const entrega = this.entregas.find(e => e.id === entregaId);

@@ -12,6 +12,7 @@ const LOCATION_TRACKING_INTERVAL = 15000; // 15 segundos
 
 class LocationService {
   private isTracking: boolean = false;
+  private currentLocation: { latitude: number; longitude: number } | null = null;
 
   // Solicita permissões de localização
   async requestPermissions(): Promise<boolean> {
@@ -95,6 +96,12 @@ class LocationService {
         const location = locations[0];
         
         if (location) {
+          // Atualiza a localização atual
+          this.currentLocation = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude
+          };
+
           // Atualiza a localização no serviço de autenticação
           authService.atualizarLocalizacao(
             location.coords.latitude,
@@ -130,6 +137,11 @@ class LocationService {
   // Verifica se o rastreamento está ativo
   isLocationTracking(): boolean {
     return this.isTracking;
+  }
+
+  // Obtém a localização atual
+  getCurrentLocation(): { latitude: number; longitude: number } | null {
+    return this.currentLocation;
   }
 }
 

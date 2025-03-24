@@ -13,6 +13,18 @@ const MAPPING = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'cube.box.fill': 'inventory', // Alterado para "inventory"
+  'people.carry.box.fill': 'local_shipping', // Usando o ícone de caminhão de entrega
+  'delivery.box': 'delivery_dining', // Usando o ícone de entrega de comida (um motociclista)
+  'shipping.box': 'local_shipping', // Caminhão de entrega
+  'package.box': 'inventory', // Prateleira de estoque
+  'list.bullet': 'list', // Para ícone de Entregas
+  'map.fill': 'map', // Para ícone de Mapa
+  'box': 'package', // Ícone alternativo de caixa
+  'package': 'local_shipping', // Ícone de pacote/entrega
+  'cube': 'cube', // Ícone de cubo
+  'cube.outline': 'inventory', // Versão outline do ícone de cubo
+  'question.mark': 'help', // Mapeamento para ícone de interrogação
 } as Partial<
   Record<
     import('expo-symbols').SymbolViewProps['name'],

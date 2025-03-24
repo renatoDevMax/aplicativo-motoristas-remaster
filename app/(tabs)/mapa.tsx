@@ -1,398 +1,312 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, Dimensions, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Dimensions } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
-import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import * as Location from 'expo-location';
-import authService, { Usuario } from '@/services/authService';
-import Animated, { FadeIn, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { WebView } from 'react-native-webview';
+import socketService from '@/services/socketService';
+import entregasService from '@/services/entregasService';
+import { entregasTipo } from '@/types/entregaType';
+import authService from '@/services/authService';
+import { useLocalSearchParams } from 'expo-router';
 
-// Criar versão animada após ThemedView ter sido atualizado com forwardRef
-const AnimatedThemedView = Animated.createAnimatedComponent(ThemedView);
 const { width, height } = Dimensions.get('window');
 
-const mapStyle = [
-  {
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#f5f5f5"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.icon",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#616161"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.text.stroke",
-    "stylers": [
-      {
-        "color": "#f5f5f5"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.land_parcel",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.land_parcel",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#bdbdbd"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.neighborhood",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#eeeeee"
-      }
-    ]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "labels.text",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#757575"
-      }
-    ]
-  },
-  {
-    "featureType": "poi.park",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#e5e5e5"
-      }
-    ]
-  },
-  {
-    "featureType": "poi.park",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#9e9e9e"
-      }
-    ]
-  },
-  {
-    "featureType": "road",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#ffffff"
-      }
-    ]
-  },
-  {
-    "featureType": "road",
-    "elementType": "labels",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "road.arterial",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#757575"
-      }
-    ]
-  },
-  {
-    "featureType": "road.highway",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#dadada"
-      }
-    ]
-  },
-  {
-    "featureType": "road.highway",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#616161"
-      }
-    ]
-  },
-  {
-    "featureType": "road.local",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#9e9e9e"
-      }
-    ]
-  },
-  {
-    "featureType": "transit.line",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#e5e5e5"
-      }
-    ]
-  },
-  {
-    "featureType": "transit.station",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#eeeeee"
-      }
-    ]
-  },
-  {
-    "featureType": "water",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#c9c9c9"
-      }
-    ]
-  },
-  {
-    "featureType": "water",
-    "elementType": "labels.text",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "water",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#9e9e9e"
-      }
-    ]
-  }
-];
-
 export default function MapaScreen() {
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [carregando, setCarregando] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const mapRef = useRef<MapView>(null);
-  const infoExpanded = useSharedValue(0);
-  
-  // Estilo animado para o painel de informações
-  const infoAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: withSpring(infoExpanded.value ? 0 : 100) }],
-      opacity: withSpring(infoExpanded.value ? 1 : 0.5),
-    };
-  });
+  const [entregas, setEntregas] = useState<entregasTipo[]>([]);
+  const [usuario, setUsuario] = useState<string>('');
+  const params = useLocalSearchParams();
+  const { latitude, longitude, zoom } = params;
 
   useEffect(() => {
-    // Verificar se o usuário está autenticado
+    // Obter usuário autenticado
     const usuarioAutenticado = authService.getUsuario();
-    
-    if (!usuarioAutenticado) {
-      setErrorMsg('Usuário não autenticado');
-      setCarregando(false);
-      return;
+    if (usuarioAutenticado) {
+      setUsuario(usuarioAutenticado.userName);
     }
-    
-    setUsuario(usuarioAutenticado);
-    setCarregando(false);
-    
-    // Mostrar o painel de informações após 500ms
-    setTimeout(() => {
-      infoExpanded.value = 1;
-    }, 500);
-    
-    // Atualizar os dados do usuário a cada segundo
-    const intervalId = setInterval(() => {
-      const usuarioAtualizado = authService.getUsuarioAtualizado();
-      if (usuarioAtualizado) {
-        setUsuario(usuarioAtualizado);
-        
-        // Centralizar mapa na posição do usuário
-        if (mapRef.current && usuarioAtualizado.localizacao) {
-          mapRef.current.animateToRegion({
-            latitude: usuarioAtualizado.localizacao.latitude,
-            longitude: usuarioAtualizado.localizacao.longitude,
-            latitudeDelta: 0.005,
-            longitudeDelta: 0.005,
-          }, 1000);
-        }
-      }
-    }, 5000); // Atualizar a cada 5 segundos para não sobrecarregar a animação
-    
+
+    // Obter entregas iniciais
+    const entregasIniciais = entregasService.getEntregas();
+    console.log('Entregas iniciais:', entregasIniciais);
+    setEntregas(entregasIniciais);
+
+    // Configurar listener para atualizações de entregas
+    const handleEntregasAtualizadas = (entregasAtualizadas: entregasTipo[]) => {
+      console.log('Entregas atualizadas:', entregasAtualizadas);
+      setEntregas(entregasAtualizadas);
+    };
+
+    socketService.on('Entregas do Dia', handleEntregasAtualizadas);
+
     return () => {
-      clearInterval(intervalId);
+      socketService.off('Entregas do Dia', handleEntregasAtualizadas);
     };
   }, []);
 
-  const centralizarMapa = () => {
-    if (usuario && mapRef.current) {
-      mapRef.current.animateToRegion({
-        latitude: usuario.localizacao.latitude,
-        longitude: usuario.localizacao.longitude,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
-      }, 500);
+  // HTML básico para o mapa Leaflet
+  const mapHtml = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <style>
+          .delivery-icon {
+            background-color: #3274e9;
+            border-radius: 50%;
+            padding: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .delivery-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
+            display: block;
+            margin: auto;
+          }
+          .custom-popup {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            overflow: hidden;
+          }
+          .custom-popup .leaflet-popup-content-wrapper {
+            background: white;
+            padding: 0;
+            border-radius: 12px;
+            box-shadow: none;
+          }
+          .custom-popup .leaflet-popup-content {
+            margin: 0;
+            width: 280px;
+          }
+          .custom-popup .leaflet-popup-tip {
+            background: white;
+          }
+          .popup-header {
+            background: linear-gradient(135deg, #3274e9, #1a5bb8);
+            padding: 16px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+          }
+          .popup-content {
+            padding: 16px;
+            text-align: center;
+          }
+          .popup-button {
+            background: #3274e9;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(50,116,233,0.3);
+          }
+          .popup-button:hover {
+            background: #1a5bb8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(50,116,233,0.4);
+          }
+          .popup-button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+          }
+        </style>
+      </head>
+      <body style="margin:0;padding:0;">
+        <div id="map" style="width:100%;height:100vh;"></div>
+        <script>
+          const map = L.map('map').setView([-25.8167, -48.5333], 13);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+          }).addTo(map);
+
+          // Função para navegar até coordenadas específicas
+          function flyToLocation(lat, lng, zoomLevel = 15) {
+            map.flyTo([lat, lng], zoomLevel, {
+              duration: 2,
+              easeLinearity: 0.25
+            });
+          }
+
+          // Função para criar o ícone de entrega
+          function createDeliveryIcon() {
+            return L.divIcon({
+              className: 'delivery-icon',
+              html: '<svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l3 4h-3V9.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>',
+              iconSize: [25, 25],
+              iconAnchor: [12.5, 12.5]
+            });
+          }
+
+          // Função para criar o conteúdo do popup
+          function createPopupContent(entrega) {
+            if (!entrega) return '';
+            
+            const header = \`<div class="popup-header">\${entrega.nome || 'Entrega'}</div>\`;
+            const content = \`<div class="popup-content">\`;
+            
+            if (entrega.status === 'Disponível') {
+              return \`\${header}\${content}
+                <button class="popup-button" onclick="window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'iniciarEntrega',
+                  entregaId: '\${entrega.id}'
+                }))">
+                  <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  Iniciar Entrega
+                </button>
+              </div>\`;
+            } else {
+              return \`\${header}\${content}</div>\`;
+            }
+          }
+
+          // Função para atualizar marcadores
+          function updateMarkers(entregas, usuarioAtual) {
+            console.log('Atualizando marcadores com:', entregas);
+            console.log('Usuário atual:', usuarioAtual);
+            
+            // Limpar marcadores existentes
+            map.eachLayer((layer) => {
+              if (layer instanceof L.Marker) {
+                map.removeLayer(layer);
+              }
+            });
+
+            // Adicionar novos marcadores
+            entregas.forEach(entrega => {
+              if (entrega.coordenadas && 
+                  entrega.coordenadas.latitude && 
+                  entrega.coordenadas.longitude &&
+                  (entrega.status === 'Disponível' || 
+                   (entrega.status === 'Andamento' && entrega.entregador === usuarioAtual))) {
+                console.log('Adicionando marcador para:', entrega.nome, 'nas coordenadas:', entrega.coordenadas);
+                const marker = L.marker([entrega.coordenadas.latitude, entrega.coordenadas.longitude], {
+                  icon: createDeliveryIcon()
+                })
+                .bindPopup(createPopupContent(entrega), {
+                  className: 'custom-popup',
+                  closeButton: true
+                })
+                .addTo(map);
+              } else {
+                console.log('Entrega não atende aos critérios:', entrega);
+              }
+            });
+          }
+
+          // Função para receber mensagens do React Native
+          window.addEventListener('message', function(event) {
+            const data = event.data;
+            if (data.type === 'updateEntregas') {
+              console.log('Recebendo entregas no mapa:', data.entregas);
+              updateMarkers(data.entregas, data.usuario);
+            } else if (data.type === 'navigateTo') {
+              console.log('Navegando para:', data.coordinates);
+              flyToLocation(data.coordinates.latitude, data.coordinates.longitude);
+            }
+          });
+        </script>
+      </body>
+    </html>
+  `;
+
+  const webViewRef = React.useRef<WebView>(null);
+
+  // Atualizar marcadores quando as entregas mudarem
+  useEffect(() => {
+    if (webViewRef.current) {
+      console.log('Enviando entregas para o mapa:', entregas);
+      webViewRef.current.injectJavaScript(`
+        window.postMessage({
+          type: 'updateEntregas',
+          entregas: ${JSON.stringify(entregas)},
+          usuario: ${JSON.stringify(usuario)}
+        }, '*');
+      `);
+    }
+  }, [entregas, usuario]);
+
+  // Efeito para navegação inicial
+  useEffect(() => {
+    if (latitude && longitude && webViewRef.current) {
+      console.log('Navegando para coordenadas:', { latitude, longitude });
+      webViewRef.current.injectJavaScript(`
+        window.postMessage({
+          type: 'navigateTo',
+          coordinates: {
+            latitude: ${latitude},
+            longitude: ${longitude}
+          }
+        }, '*');
+      `);
+    }
+  }, [latitude, longitude]);
+
+  // Função para lidar com mensagens do WebView
+  const handleWebViewMessage = (event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === 'iniciarEntrega') {
+        // Encontrar a entrega pelo ID
+        const entrega = entregas.find(e => e.id === data.entregaId);
+        if (entrega) {
+          // Atualizar status da entrega
+          const entregaAtualizada = {
+            ...entrega,
+            status: 'Andamento',
+            entregador: usuario
+          };
+
+          // Emitir evento de atualização via socket
+          const socket = socketService.getSocket();
+          if (socket) {
+            socket.emit('Atualizar Entrega', entregaAtualizada);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao processar mensagem do WebView:', error);
     }
   };
 
-  if (carregando) {
-    return (
-      <ThemedView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3274e9" />
-        <ThemedText style={styles.loadingText}>Carregando mapa...</ThemedText>
-      </ThemedView>
-    );
-  }
-
-  if (errorMsg) {
-    return (
-      <ThemedView style={styles.errorContainer}>
-        <Ionicons name="alert-circle-outline" size={60} color="#e53935" />
-        <ThemedText style={styles.errorText}>{errorMsg}</ThemedText>
-      </ThemedView>
-    );
-  }
-
   return (
     <ThemedView style={styles.container}>
-      {/* Cabeçalho */}
-      <AnimatedThemedView 
-        entering={FadeIn.delay(200).springify()}
-        style={styles.headerContainer}
-      >
-        <ThemedText style={styles.headerTitle}>Localização Atual</ThemedText>
-      </AnimatedThemedView>
-
-      {/* Mapa */}
-      <MapView
-        ref={mapRef}
+      <WebView
+        ref={webViewRef}
+        source={{ html: mapHtml }}
         style={styles.map}
-        provider={PROVIDER_GOOGLE}
-        customMapStyle={mapStyle}
-        showsUserLocation
-        showsMyLocationButton={false}
-        showsCompass={false}
-        showsScale={false}
-        showsBuildings={false}
-        showsTraffic={false}
-        showsIndoors={false}
-        initialRegion={{
-          latitude: usuario?.localizacao.latitude || -23.550520,
-          longitude: usuario?.localizacao.longitude || -46.633308,
-          latitudeDelta: 0.005,
-          longitudeDelta: 0.005,
+        onMessage={handleWebViewMessage}
+        onLoadEnd={() => {
+          // Enviar entregas iniciais quando o mapa carregar
+          if (webViewRef.current) {
+            console.log('Mapa carregado, enviando entregas iniciais');
+            webViewRef.current.injectJavaScript(`
+              window.postMessage({
+                type: 'updateEntregas',
+                entregas: ${JSON.stringify(entregas)},
+                usuario: ${JSON.stringify(usuario)}
+              }, '*');
+            `);
+          }
         }}
-      >
-        {usuario && (
-          <Marker
-            coordinate={{
-              latitude: usuario.localizacao.latitude,
-              longitude: usuario.localizacao.longitude,
-            }}
-            title={usuario.userName}
-            description="Sua localização atual"
-          >
-            <ThemedView style={styles.markerContainer}>
-              <ThemedView style={styles.markerInner}>
-                <Ionicons name="person" size={16} color="#fff" />
-              </ThemedView>
-              <ThemedView style={styles.markerTriangle} />
-            </ThemedView>
-          </Marker>
-        )}
-      </MapView>
-      
-      {/* Botão de centralizar mapa */}
-      <TouchableOpacity style={styles.centerButton} onPress={centralizarMapa}>
-        <Ionicons name="locate" size={24} color="#3274e9" />
-      </TouchableOpacity>
-      
-      {/* Painel de informações */}
-      <Animated.View style={[styles.infoPanel, infoAnimatedStyle]}>
-        {usuario && (
-          <>
-            <ThemedView style={styles.infoPanelHeader}>
-              <ThemedText style={styles.infoPanelTitle}>Detalhes da Localização</ThemedText>
-            </ThemedView>
-            
-            <ThemedView style={styles.infoPanelContent}>
-              <ThemedView style={styles.infoRow}>
-                <ThemedText style={styles.infoLabel}>Latitude:</ThemedText>
-                <ThemedText style={styles.infoValue}>
-                  {usuario.localizacao.latitude.toFixed(6)}
-                </ThemedText>
-              </ThemedView>
-              
-              <ThemedView style={styles.infoRow}>
-                <ThemedText style={styles.infoLabel}>Longitude:</ThemedText>
-                <ThemedText style={styles.infoValue}>
-                  {usuario.localizacao.longitude.toFixed(6)}
-                </ThemedText>
-              </ThemedView>
-              
-              <ThemedView style={styles.infoRow}>
-                <ThemedText style={styles.infoLabel}>Motorista:</ThemedText>
-                <ThemedText style={styles.infoValue}>{usuario.userName}</ThemedText>
-              </ThemedView>
-              
-              <ThemedView style={styles.infoRow}>
-                <ThemedText style={styles.infoLabel}>Status:</ThemedText>
-                <ThemedView style={styles.statusBadge}>
-                  <ThemedText style={styles.statusText}>{usuario.status}</ThemedText>
-                </ThemedView>
-              </ThemedView>
-            </ThemedView>
-          </>
-        )}
-      </Animated.View>
+      />
     </ThemedView>
   );
 }
@@ -401,148 +315,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorText: {
-    marginTop: 20,
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#e53935',
-  },
-  headerContainer: {
-    position: 'absolute',
-    top: 50,
-    left: 20,
-    right: 20,
-    backgroundColor: 'white',
-    borderRadius: 15,
-    padding: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
-    zIndex: 10,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333',
-  },
   map: {
     width,
     height,
-  },
-  centerButton: {
-    position: 'absolute',
-    bottom: 220,
-    right: 20,
-    backgroundColor: 'white',
-    borderRadius: 30,
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  markerContainer: {
-    alignItems: 'center',
-  },
-  markerInner: {
-    backgroundColor: '#3274e9',
-    borderRadius: 20,
-    width: 32,
-    height: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
-  },
-  markerTriangle: {
-    width: 0,
-    height: 0,
-    backgroundColor: 'transparent',
-    borderStyle: 'solid',
-    borderLeftWidth: 6,
-    borderRightWidth: 6,
-    borderTopWidth: 10,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: '#3274e9',
-    transform: [{ rotate: '180deg' }],
-    marginTop: -2,
-  },
-  infoPanel: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8,
-    paddingBottom: 30, // Para compensar a barra de navegação
-  },
-  infoPanelHeader: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  infoPanelTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333',
-  },
-  infoPanelContent: {
-    padding: 16,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  infoLabel: {
-    fontSize: 15,
-    color: '#666',
-  },
-  infoValue: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#333',
-  },
-  statusBadge: {
-    backgroundColor: '#4CAF50',
-    paddingVertical: 3,
-    paddingHorizontal: 10,
-    borderRadius: 20,
-  },
-  statusText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
   },
 }); 
