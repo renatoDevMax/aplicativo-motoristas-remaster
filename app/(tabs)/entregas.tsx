@@ -257,10 +257,10 @@ export default function EntregasScreen() {
                 <ThemedView style={styles.secaoTitulo}>
                   <Ionicons name="location" size={18} color="#3274e9" />
                   <ThemedText style={styles.secaoTituloTexto}>Endereço de Entrega</ThemedText>
-      </ThemedView>
-      
+                </ThemedView>
+                
                 <ThemedView style={styles.enderecoInfo}>
-        {item.cidade && (
+                  {item.cidade && (
                     <ThemedText style={styles.enderecoCidade}>
                       {item.cidade}
                     </ThemedText>
@@ -294,24 +294,24 @@ export default function EntregasScreen() {
                     {item.pagamento && (
                       <ThemedText style={styles.formaPagamentoText}>
                         Forma: <ThemedText style={styles.pagamentoDestaque}>{item.pagamento}</ThemedText>
-            </ThemedText>
+                      </ThemedText>
                     )}
                   </ThemedView>
-          </ThemedView>
-        )}
-        
+                </ThemedView>
+              )}
+              
               {item.observacoes && (
                 <ThemedView style={styles.observacoesSection}>
                   <ThemedView style={styles.secaoTitulo}>
                     <Ionicons name="information-circle" size={18} color="#3274e9" />
                     <ThemedText style={styles.secaoTituloTexto}>Observações</ThemedText>
-          </ThemedView>
+                  </ThemedView>
                   
                   <ThemedText style={styles.observacoesText}>
                     {item.observacoes}
-            </ThemedText>
-          </ThemedView>
-        )}
+                  </ThemedText>
+                </ThemedView>
+              )}
             </TouchableOpacity>
           )}
         </Animated.View>
@@ -325,8 +325,8 @@ export default function EntregasScreen() {
             <ThemedText style={styles.iniciarEntregaText}>Iniciar Entrega</ThemedText>
           </TouchableOpacity>
         </ThemedView>
-    </AnimatedThemedView>
-  );
+      </AnimatedThemedView>
+    );
   };
 
   if (carregando || !usuario) {
@@ -340,140 +340,156 @@ export default function EntregasScreen() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-    <ThemedView style={styles.container}>
-        <DraggableFlatList
-          data={entregasDisponiveis}
-          onDragEnd={handleDragEnd}
-          keyExtractor={(item) => item.id || Math.random().toString()}
-          contentContainerStyle={styles.listaEntregas}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item, drag, isActive }: RenderItemParams<entregasTipo>) => (
-            <ScaleDecorator>
-              <TouchableOpacity
-                onLongPress={drag}
-                onPress={() => handleEntregaPress(item.id || '')}
-                delayLongPress={1000}
-                disabled={isActive}
-                style={[
-                  styles.dragHandle,
-                  isActive && styles.dragHandleActive
-                ]}
-              >
-                <AnimatedThemedView 
-                  entering={FadeInDown.delay(entregasDisponiveis.indexOf(item) * 100).springify()}
-                  style={[
-                    styles.entregaCard,
-                    modoArrastar && styles.entregaCardModoArrastar,
-                    isActive && styles.entregaCardActive
-                  ]}
-                >
-                  <ThemedView style={styles.entregaCardHeader}>
-                    <ThemedView style={styles.headerContent}>
-                      <ThemedView style={styles.headerLeft}>
-                        <Ionicons name="menu" size={20} color="#3274e9" style={styles.dragIcon} />
-                        <ThemedText style={styles.ordemEntrega}>{`${entregasDisponiveis.indexOf(item) + 1}ª Entrega`}</ThemedText>
+      <ThemedView style={styles.container}>
+        <ThemedView style={styles.content}>
+          <ThemedView style={styles.controlButtons}>
+            {/* ... existing code ... */}
+          </ThemedView>
+          
+          {entregasDisponiveis.length === 0 ? (
+            <ThemedView style={styles.mensagemVaziaContainer}>
+              <ThemedView style={styles.emptyIconContainer}>
+                <Ionicons name="cube" size={40} color="#AAA" />
+              </ThemedView>
+              <ThemedText style={styles.emptyTitle}>Sem entregas disponíveis</ThemedText>
+              <ThemedText style={styles.emptySubtitle}>Não temos entregas disponíveis no momento</ThemedText>
+            </ThemedView>
+          ) : (
+            <DraggableFlatList
+              data={entregasDisponiveis}
+              onDragEnd={handleDragEnd}
+              keyExtractor={(item) => item.id || Math.random().toString()}
+              contentContainerStyle={styles.listaEntregas}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item, drag, isActive }: RenderItemParams<entregasTipo>) => (
+                <ScaleDecorator>
+                  <TouchableOpacity
+                    onLongPress={drag}
+                    onPress={() => handleEntregaPress(item.id || '')}
+                    delayLongPress={1000}
+                    disabled={isActive}
+                    style={[
+                      styles.dragHandle,
+                      isActive && styles.dragHandleActive
+                    ]}
+                  >
+                    <AnimatedThemedView 
+                      entering={FadeInDown.delay(entregasDisponiveis.indexOf(item) * 100).springify()}
+                      style={[
+                        styles.entregaCard,
+                        modoArrastar && styles.entregaCardModoArrastar,
+                        isActive && styles.entregaCardActive
+                      ]}
+                    >
+                      <ThemedView style={styles.entregaCardHeader}>
+                        <ThemedView style={styles.headerContent}>
+                          <ThemedView style={styles.headerLeft}>
+                            <Ionicons name="menu" size={20} color="#3274e9" style={styles.dragIcon} />
+                            <ThemedText style={styles.ordemEntrega}>{`${entregasDisponiveis.indexOf(item) + 1}ª Entrega`}</ThemedText>
+                          </ThemedView>
+                          <ThemedView style={styles.entregaStatusBadge}>
+                            <ThemedText style={styles.entregaStatusText}>{item.status}</ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+                        <ThemedView style={styles.clienteResumo}>
+                          <Ionicons name="person" size={20} color="#3274e9" />
+                          <ThemedText style={styles.clienteNome}>{item.nome || 'Cliente não identificado'}</ThemedText>
+                        </ThemedView>
                       </ThemedView>
-                      <ThemedView style={styles.entregaStatusBadge}>
-                        <ThemedText style={styles.entregaStatusText}>{item.status}</ThemedText>
-                      </ThemedView>
-                    </ThemedView>
-                    <ThemedView style={styles.clienteResumo}>
-                      <Ionicons name="person" size={20} color="#3274e9" />
-                      <ThemedText style={styles.clienteNome}>{item.nome || 'Cliente não identificado'}</ThemedText>
-                    </ThemedView>
-                  </ThemedView>
 
-                  <Animated.View layout={Layout.springify()}>
-                    {!modoArrastar && entregaExpandida === item.id && (
-                      <ThemedView style={styles.entregaCardBody}>
-                        <ThemedView style={styles.clienteSection}>
-                          <ThemedView style={styles.clienteInfo}>
-                            {item.telefone && (
+                      <Animated.View layout={Layout.springify()}>
+                        {!modoArrastar && entregaExpandida === item.id && (
+                          <ThemedView style={styles.entregaCardBody}>
+                            <ThemedView style={styles.clienteSection}>
                               <ThemedView style={styles.clienteInfo}>
-                                {renderTelefoneSection(item)}
+                                {item.telefone && (
+                                  <ThemedView style={styles.clienteInfo}>
+                                    {renderTelefoneSection(item)}
+                                  </ThemedView>
+                                )}
+                              </ThemedView>
+                            </ThemedView>
+
+                            <ThemedView style={styles.enderecoSection}>
+                              <ThemedView style={styles.secaoTitulo}>
+                                <Ionicons name="location" size={18} color="#3274e9" />
+                                <ThemedText style={styles.secaoTituloTexto}>Endereço de Entrega</ThemedText>
+                              </ThemedView>
+                              
+                              <ThemedView style={styles.enderecoInfo}>
+                                {item.cidade && (
+                                  <ThemedText style={styles.enderecoCidade}>
+                                    {item.cidade}
+                                  </ThemedText>
+                                )}
+                                {item.bairro && (
+                                  <ThemedText style={styles.enderecoBairro}>
+                                    {item.bairro}
+                                  </ThemedText>
+                                )}
+                                {(item.rua || item.numero) && (
+                                  <ThemedText style={styles.enderecoRua}>
+                                    {[item.rua, item.numero].filter(Boolean).join(', ')}
+                                  </ThemedText>
+                                )}
+                              </ThemedView>
+                            </ThemedView>
+
+                            {(item.valor || item.pagamento) && (
+                              <ThemedView style={styles.pagamentoSection}>
+                                <ThemedView style={styles.secaoTitulo}>
+                                  <Ionicons name="cash" size={18} color="#3274e9" />
+                                  <ThemedText style={styles.secaoTituloTexto}>Pagamento</ThemedText>
+                                </ThemedView>
+                                
+                                <ThemedView style={styles.pagamentoInfo}>
+                                  {item.valor && (
+                                    <ThemedText style={styles.valorText}>
+                                      Valor: <ThemedText style={styles.valorDestaque}>R$ {item.valor}</ThemedText>
+                                    </ThemedText>
+                                  )}
+                                  {item.pagamento && (
+                                    <ThemedText style={styles.formaPagamentoText}>
+                                      Forma: <ThemedText style={styles.pagamentoDestaque}>{item.pagamento}</ThemedText>
+                                    </ThemedText>
+                                  )}
+                                </ThemedView>
+                              </ThemedView>
+                            )}
+
+                            {item.observacoes && (
+                              <ThemedView style={styles.observacoesSection}>
+                                <ThemedView style={styles.secaoTitulo}>
+                                  <Ionicons name="information-circle" size={18} color="#3274e9" />
+                                  <ThemedText style={styles.secaoTituloTexto}>Observações</ThemedText>
+                                </ThemedView>
+                                
+                                <ThemedText style={styles.observacoesText}>
+                                  {item.observacoes}
+                                </ThemedText>
                               </ThemedView>
                             )}
                           </ThemedView>
-                        </ThemedView>
-
-                        <ThemedView style={styles.enderecoSection}>
-                          <ThemedView style={styles.secaoTitulo}>
-                            <Ionicons name="location" size={18} color="#3274e9" />
-                            <ThemedText style={styles.secaoTituloTexto}>Endereço de Entrega</ThemedText>
-                          </ThemedView>
-                          
-                          <ThemedView style={styles.enderecoInfo}>
-                            {item.cidade && (
-                              <ThemedText style={styles.enderecoCidade}>
-                                {item.cidade}
-                              </ThemedText>
-                            )}
-                            {item.bairro && (
-                              <ThemedText style={styles.enderecoBairro}>
-                                {item.bairro}
-                              </ThemedText>
-                            )}
-                            {(item.rua || item.numero) && (
-                              <ThemedText style={styles.enderecoRua}>
-                                {[item.rua, item.numero].filter(Boolean).join(', ')}
-                              </ThemedText>
-                            )}
-                          </ThemedView>
-                        </ThemedView>
-
-                        {(item.valor || item.pagamento) && (
-                          <ThemedView style={styles.pagamentoSection}>
-                            <ThemedView style={styles.secaoTitulo}>
-                              <Ionicons name="cash" size={18} color="#3274e9" />
-                              <ThemedText style={styles.secaoTituloTexto}>Pagamento</ThemedText>
-                            </ThemedView>
-                            
-                            <ThemedView style={styles.pagamentoInfo}>
-                              {item.valor && (
-                                <ThemedText style={styles.valorText}>
-                                  Valor: <ThemedText style={styles.valorDestaque}>R$ {item.valor}</ThemedText>
-                                </ThemedText>
-                              )}
-                              {item.pagamento && (
-                                <ThemedText style={styles.formaPagamentoText}>
-                                  Forma: <ThemedText style={styles.pagamentoDestaque}>{item.pagamento}</ThemedText>
-                                </ThemedText>
-                              )}
-                            </ThemedView>
-                          </ThemedView>
                         )}
+                      </Animated.View>
 
-                        {item.observacoes && (
-                          <ThemedView style={styles.observacoesSection}>
-                            <ThemedView style={styles.secaoTitulo}>
-                              <Ionicons name="information-circle" size={18} color="#3274e9" />
-                              <ThemedText style={styles.secaoTituloTexto}>Observações</ThemedText>
-                            </ThemedView>
-                            
-                            <ThemedText style={styles.observacoesText}>
-                              {item.observacoes}
-                            </ThemedText>
-                          </ThemedView>
-                        )}
+                      <ThemedView style={styles.buttonContainer}>
+                        <TouchableOpacity 
+                          style={styles.iniciarEntregaButton}
+                          onPress={() => handleIniciarEntrega(item)}
+                        >
+                          <Ionicons name="play-circle" size={20} color="#3274e9" />
+                          <ThemedText style={styles.iniciarEntregaText}>Iniciar Entrega</ThemedText>
+                        </TouchableOpacity>
                       </ThemedView>
-                    )}
-                  </Animated.View>
-
-                  <ThemedView style={styles.buttonContainer}>
-                    <TouchableOpacity 
-                      style={styles.iniciarEntregaButton}
-                      onPress={() => handleIniciarEntrega(item)}
-                    >
-                      <Ionicons name="play-circle" size={20} color="#3274e9" />
-                      <ThemedText style={styles.iniciarEntregaText}>Iniciar Entrega</ThemedText>
-                    </TouchableOpacity>
-                  </ThemedView>
-                </AnimatedThemedView>
-              </TouchableOpacity>
-            </ScaleDecorator>
+                    </AnimatedThemedView>
+                  </TouchableOpacity>
+                </ScaleDecorator>
+              )}
+            />
           )}
-        />
-    </ThemedView>
+        </ThemedView>
+      </ThemedView>
     </GestureHandlerRootView>
   );
 }
@@ -482,6 +498,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f7fa',
+  },
+  content: {
+    flex: 1,
+    position: 'relative',
+  },
+  controlButtons: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 10,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   loadingContainer: {
     flex: 1,
@@ -494,7 +522,7 @@ const styles = StyleSheet.create({
   },
   listaEntregas: {
     padding: 20,
-    paddingTop: 40,
+    paddingTop: 120,
   },
   entregaCard: {
     backgroundColor: 'white',
@@ -768,5 +796,34 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 6,
+  },
+  mensagemVaziaContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 80,
+    paddingHorizontal: 20,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 15,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
   },
 }); 

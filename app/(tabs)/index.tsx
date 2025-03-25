@@ -594,15 +594,14 @@ export default function HomeScreen() {
                 <ThemedText style={styles.statusText}>{usuario.status}</ThemedText>
               </Animated.View>
               
-              <ThemedView style={styles.monitoringIndicator}>
-                <ThemedView style={styles.indicatorContainer}>
-                  <Animated.View style={[styles.indicatorGlow, indicatorGlowStyle]} />
-                  <Animated.View style={[styles.indicatorDot, indicatorAnimatedStyle]} />
-                </ThemedView>
-                <ThemedText style={styles.monitoringText}>
-                  {isTracking ? 'Rastreamento ativo' : 'Rastreamento inativo'}
-                </ThemedText>
-              </ThemedView>
+              <TouchableOpacity 
+                style={styles.finalizarDiaButton}
+                onPress={handleFinalizarDia}
+                activeOpacity={0.7}
+              >
+                <ThemedText style={styles.finalizarDiaText}>Finalizar o Dia</ThemedText>
+                <Ionicons name="exit-outline" size={16} color="#e53935" />
+              </TouchableOpacity>
             </ThemedView>
           </AnimatedThemedView>
         </ThemedView>
@@ -742,7 +741,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 20,
     marginBottom: 10,
-    backdropFilter: 'blur(8px)',
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.4)',
     shadowColor: '#000',
@@ -758,6 +756,28 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.9)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+  },
+  finalizarDiaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#e53935',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  finalizarDiaText: {
+    color: '#e53935',
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginRight: 6,
   },
   monitoringIndicator: {
     flexDirection: 'row',

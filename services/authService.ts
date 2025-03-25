@@ -17,22 +17,28 @@ class AuthService {
   async autenticarUsuario(userName: string, senha: string): Promise<Usuario> {
     return new Promise((resolve, reject) => {
       try {
+        console.log('Iniciando processo de autenticação...');
+        
         // Verifica se a conexão socket está estabelecida
         if (!socketService.isSocketConnected()) {
-          // Conecta ao servidor socket
+          console.log('Socket não conectado. Tentando conectar...');
           socketService.connect();
         }
 
         // Envia credenciais para autenticação
+        console.log('Enviando credenciais para autenticação...');
         socketService.emit('Autenticar Usuario', { userName, senha });
 
         // Aguarda resposta do servidor no mesmo evento 'Autenticar Usuario'
         socketService.once('Autenticar Usuario', (resposta: any) => {
+          console.log('Resposta recebida do servidor:', resposta);
           if (resposta.mensagemServer) {
             // Resposta com erro
+            console.error('Erro na autenticação:', resposta.mensagemServer);
             reject(new Error(resposta.mensagemServer));
           } else {
             // Resposta com sucesso - é o objeto usuário
+            console.log('Autenticação bem sucedida');
             this.usuario = resposta;
             resolve(resposta);
           }
@@ -40,9 +46,11 @@ class AuthService {
 
         // Define um timeout para a autenticação
         setTimeout(() => {
-          reject(new Error('Tempo de autenticação expirado. Tente novamente.'));
-        }, 10000); // 10 segundos
+          console.error('Timeout na autenticação');
+          reject(new Error('Tempo de autenticação expirado. Verifique sua conexão e tente novamente.'));
+        }, 30000); // 30 segundos
       } catch (error) {
+        console.error('Erro durante a autenticação:', error);
         reject(error);
       }
     });
